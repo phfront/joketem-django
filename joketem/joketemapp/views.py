@@ -1,10 +1,12 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from joketem.joketemapp.serializers import UserSerializer, GroupSerializer
+from joketem.joketemapp.serializers import UserSerializer, GroupSerializer, JokeSerializer
 from rest_framework.response import Response
 from random import randint
+from .models import Joke
 
+from rest_framework.parsers import JSONParser
 import json
 
 
@@ -23,13 +25,13 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
-class JokeList(APIView):
+class RandomJokeView(APIView):
     """
     List all jokes
     """
     def get(self, request, format=None):
-        # snippets = Snippet.objects.all()
-        # serializer = SnippetSerializer(snippets, many=True)
-        with open('joketem/joketemapp/jokes.json', 'r') as f:
-            jokes = json.load(f)
-        return Response(jokes[randint(0, len(jokes) - 1)])
+        count = Joke.objects.all().count()
+        joke = Joke.objects.get(number=randint(1, count));
+        serializer = JokeSerializer(joke, many=False)
+        return Response(serializer.data['text'])
+        # return Response(jokes[randint(0, len(jokes) - 1)])
